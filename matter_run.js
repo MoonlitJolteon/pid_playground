@@ -347,13 +347,7 @@ const positionGraphData = {
             borderColor: 'blue',
             data: [],
             fill: false,
-        },
-        {
-            label: 'Error',
-            borderColor: 'green',
-            data: [],
-            fill: false,
-        },
+        }
     ],
 };
 
@@ -361,6 +355,9 @@ const positionConfig = {
     type: 'line',
     data: positionGraphData,
     options: {
+        animation: {
+            duration: 0
+        },
         scales: {
             x: {
                 type: 'linear',
@@ -408,6 +405,9 @@ const pidGraphConfig = {
     type: 'line',
     data: pidGraphData,
     options: {
+        animation: {
+            duration: 0
+        },
         scales: {
             x: {
                 type: 'linear',
@@ -423,6 +423,7 @@ let startTime = Date.now();
 let lastUpdateTime = 0;
 const updateInterval = 100; // Update every 100ms
 
+const MAX_GRAPH_VALUES = 300;
 function updateGraph() {
     const currentTime = (Date.now() - startTime) / 1000;
     if (currentTime - lastUpdateTime >= updateInterval / 1000) {
@@ -433,13 +434,20 @@ function updateGraph() {
         positionGraphData.labels.push(currentTime);
         positionGraphData.datasets[0].data.push({ x: currentTime, y: scaledTargetPosition });
         positionGraphData.datasets[1].data.push({ x: currentTime, y: scaledCurrentPosition });
-        positionGraphData.datasets[2].data.push({ x: currentTime, y: error });
+        for(let dataset of positionGraphData.datasets) {
+            if(dataset.data.length > MAX_GRAPH_VALUES)
+                dataset.data.shift()
+        }
         positionGraph.update();
 
         pidGraphData.labels.push(currentTime);
         pidGraphData.datasets[0].data.push({ x: currentTime, y: speedControl.lastOutput });
         pidGraphData.datasets[1].data.push({ x: currentTime, y: angleControl.lastOutput });
         pidGraphData.datasets[2].data.push({ x: currentTime, y: forceControl.lastOutput });
+        for(let dataset of pidGraphData.datasets) {
+            if(dataset.data.length > MAX_GRAPH_VALUES)
+                dataset.data.shift()
+        }
         pidGraph.update();
 
         if (positionGraphCheckbox.checked) {
